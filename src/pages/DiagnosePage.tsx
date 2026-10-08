@@ -1,27 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Stethoscope, Upload, Camera, AlertCircle, ShieldAlert, CheckCircle2, Award, ChevronRight } from 'lucide-react';
+import { Stethoscope, Upload, Camera, AlertCircle, ShieldAlert, CheckCircle2, Award, ChevronRight, X } from 'lucide-react';
 import { MetalButton } from '@/components/ui/MetalButton';
 import { ThinkingOrbWrapper } from '@/components/ui/ThinkingOrbWrapper';
+import { validateImageFile } from '@/services/supabase/storage';
+import { saveDiagnosisSession } from '@/services/supabase/repository';
 import type { PlantImageUpload, DiagnosisPrediction } from '@/types/agricultural';
 
 export const DiagnosePage: React.FC = () => {
   const { t } = useTranslation();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeUploadPart, setActiveUploadPart] = useState<'leaf' | 'whole_plant' | 'stem'>('leaf');
   const [selectedCrop, setSelectedCrop] = useState('Paddy / Rice');
   const [cropStage, setCropStage] = useState('Tillering');
   const [region, setRegion] = useState('Telangana (Warangal / Nalgonda)');
   const [uploads, setUploads] = useState<PlantImageUpload[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [prediction, setPrediction] = useState<DiagnosisPrediction | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
-  // Mock upload handler for demonstration
-  const handleSimulateUpload = (part: 'leaf' | 'whole_plant' | 'stem') => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUploadError(null);
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    const validation = validateImageFile(file);
+    if (!validation.isValid) {
+      setUploadError(validation.error || 'Invalid image file.');
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
     const newUpload: PlantImageUpload = {
       id: Math.random().toString(),
-      previewUrl: 'https://images.unsplash.com/photo-1599818814768-3f9cfb823f6e?w=600&auto=format&fit=crop&q=80',
-      plant_part: part,
+      file,
+      previewUrl,
+      plant_part: activeUploadPart,
     };
     setUploads((prev) => [...prev, newUpload]);
+  };
+
+  const triggerFileUpload = (part: 'leaf' | 'whole_plant' | 'stem') => {
+    setActiveUploadPart(part);
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleRemoveUpload = (id: string) => {
+    setUploads((prev) => prev.filter((u) => u.id !== id));
   };
 
   const handleRunAnalysis = () => {
@@ -186,31 +214,63 @@ export const DiagnosePage: React.FC = () => {
               </p>
             </div>
 
-            {/* Quick Simulation Buttons */}
+            {/* Hidden native file input */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+            />
+
+            {/* Error notice if validation fails */}
+            {uploadError && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-700 dark:text-rose-300 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{uploadError}</span>
+              </div>
+            )}
+
+            {/* Camera / Upload Action Buttons */}
             <div className="flex flex-wrap justify-center gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => handleSimulateUpload('leaf')}
-                className="px-3 py-1.5 text-xs rounded-lg border border-border bg-background hover:bg-muted font-medium flex items-center gap-1.5"
+                onClick={() => triggerFileUpload('leaf')}
+                className="px-3.5 py-2 text-xs rounded-xl border border-emerald-700/30 bg-background hover:bg-muted font-medium flex items-center gap-1.5 shadow-xs transition-colors"
               >
                 <Camera className="w-3.5 h-3.5 text-emerald-600" /> + Add Leaf Close-up
               </button>
               <button
                 type="button"
-                onClick={() => handleSimulateUpload('whole_plant')}
-                className="px-3 py-1.5 text-xs rounded-lg border border-border bg-background hover:bg-muted font-medium flex items-center gap-1.5"
+                onClick={() => triggerFileUpload('whole_plant')}
+                className="px-3.5 py-2 text-xs rounded-xl border border-emerald-700/30 bg-background hover:bg-muted font-medium flex items-center gap-1.5 shadow-xs transition-colors"
               >
                 <Camera className="w-3.5 h-3.5 text-emerald-600" /> + Add Whole Plant
+              </button>
+              <button
+                type="button"
+                onClick={() => triggerFileUpload('stem')}
+                className="px-3.5 py-2 text-xs rounded-xl border border-emerald-700/30 bg-background hover:bg-muted font-medium flex items-center gap-1.5 shadow-xs transition-colors"
+              >
+                <Camera className="w-3.5 h-3.5 text-emerald-600" /> + Add Stem / Pest
               </button>
             </div>
           </div>
 
-          {/* Uploaded Thumbnails */}
+          {/* Uploaded Thumbnails with Delete button */}
           {uploads.length > 0 && (
             <div className="grid grid-cols-3 gap-3">
-              {uploads.map((u, idx) => (
-                <div key={idx} className="relative rounded-xl overflow-hidden border border-border aspect-square group">
+              {uploads.map((u) => (
+                <div key={u.id} className="relative rounded-xl overflow-hidden border border-border aspect-square group shadow-xs">
                   <img src={u.previewUrl} alt="Sample preview" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveUpload(u.id)}
+                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-rose-600 transition-colors"
+                    aria-label="Remove image"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
                   <div className="absolute inset-x-0 bottom-0 bg-black/70 px-2 py-1 text-[10px] text-white capitalize text-center">
                     {u.plant_part.replace('_', ' ')}
                   </div>
