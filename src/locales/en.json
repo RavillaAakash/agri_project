@@ -1,0 +1,75 @@
+{
+  "app": {
+    "title": "AgriAI Doctor",
+    "tagline": "Intelligent Crop Health, Pest & Farm Advisory Platform",
+    "disclaimer": "AI assistance is an evidence-backed decision support tool, not a guaranteed diagnosis. Always verify critical decisions with qualified agricultural experts."
+  },
+  "nav": {
+    "home": "Home",
+    "diagnose": "Scan Crop",
+    "chatbot": "AgriAI Assistant",
+    "library": "Crop Encyclopedia",
+    "dashboard": "Farm Dashboard",
+    "weather": "Weather & Risk",
+    "expert": "Expert Help",
+    "admin": "Data & Audit"
+  },
+  "hero": {
+    "title_primary": "YOUR CROPS.",
+    "title_highlight": "UNDERSTOOD BY AI.",
+    "subtitle": "Detect crop diseases, identify pests, assess nutrient stress, and get evidence-based ICAR-aligned guidance in English, Telugu, and Hindi.",
+    "cta_scan": "Scan My Crop",
+    "cta_chat": "Ask AgriAI",
+    "cta_library": "Explore Crop Library"
+  },
+  "diagnose": {
+    "title": "AI Crop Diagnosis Studio",
+    "subtitle": "Upload multiple angles of your plant (leaf, whole plant, stem/pest) for high-accuracy multimodal assessment.",
+    "select_crop": "Select Crop",
+    "crop_stage": "Crop Growth Stage",
+    "location": "Location / Region",
+    "upload_zone": "Drop leaf or plant photos here, or click to capture",
+    "multi_image_hint": "Tip: Adding a close-up of the leaf AND a whole-plant photo increases diagnostic confidence.",
+    "analyze_btn": "Analyze Plant Health",
+    "analyzing": "Analyzing crop imagery with Agricultural AI...",
+    "results_title": "Diagnostic Assessment",
+    "confidence": "AI Confidence",
+    "observed_symptoms": "Observed Symptoms",
+    "possible_cause": "Possible Cause",
+    "immediate_actions": "What to Do Now (Cultural & Mechanical)",
+    "ipm_practices": "Integrated Pest Management (IPM)",
+    "prevention": "Preventive Measures",
+    "caution": "Important Safety Caution",
+    "sources": "Authoritative Sources",
+    "expert_escalation": "Confidence is moderate/low. Request human agricultural scientist review."
+  },
+  "chat": {
+    "title": "AgriAI Agricultural Assistant",
+    "placeholder": "Ask in English, Telugu, Hindi, or mixed (e.g. 'My chilli leaves yellow ga unnayi')...",
+    "send": "Send Query",
+    "thinking": {
+      "listening": "Listening to query...",
+      "searching": "Searching verified agricultural database...",
+      "solving": "Analyzing symptoms and disease patterns...",
+      "composing": "Synthesizing evidence-based guidance...",
+      "breathing": "AgriAI Ready"
+    }
+  },
+  "farm": {
+    "title": "Farm & Field Management",
+    "add_field": "Add Field",
+    "crop_health_status": "Overall Crop Health",
+    "weather_risk": "Weather Disease Risk",
+    "active_advisories": "Active Field Advisories"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong. Please try again.",
+    "verified": "Verified Source",
+    "confidence_high": "High Confidence",
+    "confidence_medium": "Moderate Confidence",
+    "confidence_low": "Low Confidence",
+    "view_more": "View Details",
+    "close": "Close"
+  }
+}
