@@ -1,17 +1,19 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, Plus, MapPin, Calendar, Activity, CheckCircle, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { useAuth } from '@/features/profile/AuthContext';
+import { LayoutDashboard, Plus, MapPin, Calendar, Activity, CheckCircle, AlertTriangle, ShieldAlert, User } from 'lucide-react';
 import type { FarmRecord } from '@/types/agricultural';
 
 export const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
+  const { profile } = useAuth();
 
   const farm: FarmRecord = {
     id: 'f-01',
-    name: 'Suryapet Organic & Smart Acreage',
-    location: 'Suryapet Mandal',
-    district: 'Suryapet',
-    state: 'Telangana',
+    name: profile ? `${profile.fullName}'s Farm Holding` : 'Suryapet Organic & Smart Acreage',
+    location: profile ? `${profile.district} Field Block` : 'Suryapet Mandal',
+    district: profile?.district || 'Warangal',
+    state: (profile?.state as 'Telangana' | 'Andhra Pradesh') || 'Telangana',
     total_acres: 8.5,
     crops: [
       {
