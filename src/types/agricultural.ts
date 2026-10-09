@@ -144,6 +144,33 @@ export interface ChatMessage {
   thinkingState?: ThinkingOrbState;
 }
 
+export interface FieldRecord {
+  id: string;
+  farm_id?: string;
+  crop_id: string;
+  crop_name: string;
+  variety: string;
+  acres: number;
+  planting_date: string;
+  stage: string;
+  soil_type: string;
+  irrigation_type: string;
+  health_status: 'good' | 'moderate' | 'at_risk';
+  last_scanned?: string;
+  notes?: string;
+}
+
+export interface AgronomicTask {
+  id: string;
+  crop_id: string;
+  title: string;
+  description: string;
+  priority: 'high' | 'medium' | 'low';
+  due_date: string;
+  is_completed: boolean;
+  category: 'irrigation' | 'scouting' | 'nutrition' | 'ipm';
+}
+
 export interface FarmRecord {
   id: string;
   name: string;
@@ -158,6 +185,23 @@ export interface FarmRecord {
     planting_date: string;
     stage: string;
     health_status: 'good' | 'moderate' | 'at_risk';
+  }[];
+  fields?: FieldRecord[];
+}
+
+export interface SprayWindowAdvisory {
+  status: 'optimal' | 'marginal' | 'hazardous';
+  summary: string;
+  best_window_hours: string;
+  wind_drift_risk: 'low' | 'moderate' | 'high';
+  washoff_risk: 'low' | 'moderate' | 'high';
+  phytotoxicity_risk: 'low' | 'moderate' | 'high';
+  hourly_forecast: {
+    hour: string;
+    temperature_c: number;
+    wind_kmh: number;
+    rain_probability_percent: number;
+    recommendation: 'safe' | 'caution' | 'unsafe';
   }[];
 }
 
@@ -175,3 +219,23 @@ export interface WeatherCondition {
     preventive_advice: string;
   }[];
 }
+
+export interface DistrictWeatherReport extends WeatherCondition {
+  district: string;
+  state: 'Telangana' | 'Andhra Pradesh';
+  agro_climatic_zone: string;
+  dew_point_c: number;
+  uv_index: number;
+  cloud_cover_percent: number;
+  spray_window: SprayWindowAdvisory;
+  five_day_forecast: {
+    date: string;
+    day_name: string;
+    temp_max_c: number;
+    temp_min_c: number;
+    humidity_percent: number;
+    condition: string;
+    disease_threat: string;
+  }[];
+}
+

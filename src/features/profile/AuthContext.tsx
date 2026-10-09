@@ -11,6 +11,8 @@ export interface UserProfile {
   preferredLanguage: Language;
   state: string;
   district: string;
+  mandal?: string;
+  village?: string;
   role: 'farmer' | 'expert' | 'admin';
 }
 
