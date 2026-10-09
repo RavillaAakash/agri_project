@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '@/features/profile/AuthContext';
 import {
   UserCheck,
@@ -8,21 +7,11 @@ import {
   CheckCircle2,
   Clock,
   AlertTriangle,
-  FileText,
   Image as ImageIcon,
   X,
-  Search,
   Filter,
   Check,
-  User,
-  Phone,
-  MapPin,
-  Leaf,
-  ExternalLink,
-  ChevronRight,
-  Sparkles,
   Printer,
-  Share2,
 } from 'lucide-react';
 import {
   getStoredTickets,
@@ -31,7 +20,6 @@ import {
 } from '@/features/expert/expertService';
 
 export const ExpertPage: React.FC = () => {
-  const { t } = useTranslation();
   const { profile } = useAuth();
 
   // Dual-role view state: 'farmer' or 'agronomist'
@@ -40,7 +28,7 @@ export const ExpertPage: React.FC = () => {
   );
 
   const [farmerSubTab, setFarmerSubTab] = useState<'submit' | 'history'>('submit');
-  const [tickets, setTickets] = useState<EscalationTicket[]>([]);
+  const [tickets, setTickets] = useState<EscalationTicket[]>(() => getStoredTickets());
   const [selectedTicketForReview, setSelectedTicketForReview] = useState<EscalationTicket | null>(null);
   const [selectedTicketForDetail, setSelectedTicketForDetail] = useState<EscalationTicket | null>(null);
 
@@ -69,10 +57,6 @@ export const ExpertPage: React.FC = () => {
 
   const leafInputRef = useRef<HTMLInputElement>(null);
   const wholeInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    setTickets(getStoredTickets());
-  }, []);
 
   const handleLeafImagePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

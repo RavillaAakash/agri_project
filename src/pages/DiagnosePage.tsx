@@ -6,6 +6,7 @@ import { ThinkingOrbWrapper } from '@/components/ui/ThinkingOrbWrapper';
 import { validateImageFile } from '@/services/supabase/storage';
 import { saveDiagnosisSession } from '@/services/supabase/repository';
 import { runMultimodalInference, type LesionSegmentationEstimate } from '@/services/ai/visionInference';
+import { checkRateLimit } from '@/services/ai/rateLimiter';
 import type { PlantImageUpload, DiagnosisPrediction } from '@/types/agricultural';
 
 export const DiagnosePage: React.FC = () => {
@@ -56,6 +57,17 @@ export const DiagnosePage: React.FC = () => {
 
   const handleRunAnalysis = async () => {
     if (uploads.length === 0) return;
+
+    const rateCheck = checkRateLimit({ key: 'diagnosis_engine', maxRequests: 15, windowMs: 60000 });
+    if (!rateCheck.allowed) {
+      setUploadError(
+        `Diagnostic analysis limit reached. Please wait ${
+          rateCheck.retryAfterSeconds || 10
+        } seconds before running another inference.`
+      );
+      return;
+    }
+
     setIsAnalyzing(true);
     setPrediction(null);
     setSegmentation(null);

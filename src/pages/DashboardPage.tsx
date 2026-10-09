@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/profile/AuthContext';
@@ -6,10 +6,7 @@ import {
   LayoutDashboard,
   Plus,
   MapPin,
-  Calendar,
   Activity,
-  CheckCircle,
-  AlertTriangle,
   ShieldAlert,
   Leaf,
   Scan,
@@ -17,10 +14,7 @@ import {
   CheckSquare,
   Square,
   Clock,
-  Sparkles,
   CloudSun,
-  Droplets,
-  ExternalLink,
   ChevronRight,
   Info,
 } from 'lucide-react';
@@ -31,15 +25,14 @@ import {
   getStoredTasks,
   saveStoredTasks,
 } from '@/features/farm/farmService';
-import { MetalButton } from '@/components/ui/MetalButton';
 
 export const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { profile } = useAuth();
 
-  const [fields, setFields] = useState<FieldRecord[]>([]);
-  const [tasks, setTasks] = useState<AgronomicTask[]>([]);
+  const [fields, setFields] = useState<FieldRecord[]>(() => getStoredFields());
+  const [tasks, setTasks] = useState<AgronomicTask[]>(() => getStoredTasks());
   const [isAddFieldModalOpen, setIsAddFieldModalOpen] = useState(false);
   const [selectedFieldForDetail, setSelectedFieldForDetail] = useState<FieldRecord | null>(null);
 
@@ -52,15 +45,8 @@ export const DashboardPage: React.FC = () => {
   const [newSoilType, setNewSoilType] = useState('Clay Loam');
   const [newIrrigation, setNewIrrigation] = useState('Canal / Tube-well');
 
-  useEffect(() => {
-    setFields(getStoredFields());
-    setTasks(getStoredTasks());
-  }, []);
-
   const totalAcres = fields.reduce((sum, f) => sum + (Number(f.acres) || 0), 0);
   const atRiskFields = fields.filter((f) => f.health_status === 'at_risk');
-  const healthyFields = fields.filter((f) => f.health_status === 'good');
-  const moderateFields = fields.filter((f) => f.health_status === 'moderate');
 
   const handleUpdateHealth = (fieldId: string, newHealth: 'good' | 'moderate' | 'at_risk') => {
     const updated = fields.map((f) => (f.id === fieldId ? { ...f, health_status: newHealth } : f));

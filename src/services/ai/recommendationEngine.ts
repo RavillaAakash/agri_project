@@ -1,5 +1,6 @@
 import { getConditions } from '@/services/supabase/repository';
 import type { AgriculturalCondition, Language } from '@/types/agricultural';
+import { checkRateLimit } from '@/services/ai/rateLimiter';
 
 export interface RecommendationRequest {
   userQuery: string;
@@ -284,6 +285,34 @@ export async function generateGroundedRecommendation(
   request: RecommendationRequest
 ): Promise<RecommendationResponse> {
   const { userQuery } = request;
+
+  // 0. Rate limiting check (§56)
+  const rateCheck = checkRateLimit({ maxRequests: 25, windowMs: 60000 });
+  if (!rateCheck.allowed) {
+    const rateLimited: RecommendationResponse = {
+      cropName: 'System Rate Limit Alert',
+      problemName: 'Query Rate Limit Exceeded',
+      scientificName: 'HTTP 429 - Too Many Requests',
+      confidenceScore: 0,
+      confidenceTier: 'low',
+      symptomsObserved: [
+        `Request frequency exceeded safe limits. Please wait ${
+          rateCheck.retryAfterSeconds || 10
+        } seconds before submitting your next crop advisory query.`,
+      ],
+      possibleCauses: ['Rapid successive queries detected from client browser session.'],
+      whatToDoNow: ['Please wait a few seconds and retry your agricultural question.'],
+      prevention: ['Sliding-window rate limits protect inference availability for all farmers during peak pest outbreaks.'],
+      ipmBiological: [],
+      importantCaution: 'System defense and anti-abuse safeguards active.',
+      sources: [{ name: 'AgriAI Security Policy', url: 'https://agriai.telangana-rythu.org', status: 'verified' }],
+      advancedScientificDetails: 'Rate limiter sliding-window threshold: 25 requests / min.',
+      isInjectionBlocked: true,
+      formattedMarkdown: '',
+    };
+    rateLimited.formattedMarkdown = formatRecommendationAsMarkdown(rateLimited);
+    return rateLimited;
+  }
 
   // 1. Sanitize input against prompt injection
   const { sanitized, isMalicious } = sanitizeUserInput(userQuery);
