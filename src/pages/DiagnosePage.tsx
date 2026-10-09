@@ -5,6 +5,7 @@ import { MetalButton } from '@/components/ui/MetalButton';
 import { ThinkingOrbWrapper } from '@/components/ui/ThinkingOrbWrapper';
 import { validateImageFile } from '@/services/supabase/storage';
 import { saveDiagnosisSession } from '@/services/supabase/repository';
+import { runMultimodalInference, type LesionSegmentationEstimate } from '@/services/ai/visionInference';
 import type { PlantImageUpload, DiagnosisPrediction } from '@/types/agricultural';
 
 export const DiagnosePage: React.FC = () => {
@@ -17,6 +18,7 @@ export const DiagnosePage: React.FC = () => {
   const [uploads, setUploads] = useState<PlantImageUpload[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [prediction, setPrediction] = useState<DiagnosisPrediction | null>(null);
+  const [segmentation, setSegmentation] = useState<LesionSegmentationEstimate | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,73 +54,43 @@ export const DiagnosePage: React.FC = () => {
     setUploads((prev) => prev.filter((u) => u.id !== id));
   };
 
-  const handleRunAnalysis = () => {
+  const handleRunAnalysis = async () => {
     if (uploads.length === 0) return;
     setIsAnalyzing(true);
     setPrediction(null);
+    setSegmentation(null);
 
-    // Simulating verified agronomic pipeline
-    setTimeout(() => {
-      setIsAnalyzing(false);
-      setPrediction({
-        id: 'diag-001',
-        condition_id: 'rice-blast-01',
-        condition_name: 'Rice Blast (మెడ విరుపు / ब्लास्ट)',
-        scientific_name: 'Magnaporthe oryzae (Pyricularia oryzae)',
-        local_names: {
-          en: 'Rice Blast',
-          te: 'వరి అగ్గితెగులు / మెడ విరుపు',
-          hi: 'धान का झुलसा रोग (ब्लास्ट)',
-        },
-        problem_type: 'disease',
-        confidence: 88,
-        confidence_level: 'high',
-        observed_symptoms: [
-          'Spindle-shaped or eye-shaped lesions with grey/whitish centers and dark reddish-brown borders on leaves.',
-          'Lesions coalescing causing leaf desiccation (blast appearance).',
-          'Characteristic node and neck rot vulnerability detected for current tillering stage.',
-        ],
-        possible_causes: [
-          'High relative humidity (>90%) with cloudy days and moderate temperatures (20-26°C).',
-          'Excessive application of chemical nitrogenous fertilizers without adequate potash.',
-        ],
-        what_to_do_now: [
-          'Avoid excessive nitrogen top-dressing immediately.',
-          'Maintain field sanitation and manage standing water to reduce microclimate humidity.',
-          'Drain field temporarily if flooded to suppress fungal spore sporulation.',
-        ],
-        prevention_guidance: [
-          'Use blast-resistant varieties (e.g. MTU 1010, RNR 15048 where suitable).',
-          'Treat seeds with Trichoderma viride @ 5-10g/kg seed before sowing.',
-          'Balance N:P:K fertilizer ratios based on official soil health card tests.',
-        ],
-        ipm_guidance: [
-          'Biological Control: Apply Pseudomonas fluorescens 2.5 kg/ha mixed with well-rotted farmyard manure.',
-          'Cultural: Avoid late planting and maintain optimal plant spacing to allow sun penetration.',
-        ],
-        chemical_guidance: {
-          active_ingredient: 'Tricyclazole 75% WP or Isoprothiolane 40% EC (State Uni Approved)',
-          official_recommendation: 'Spray Tricyclazole 75% WP @ 0.6 g/L or Isoprothiolane 40% EC @ 1.5 ml/L only if disease threshold crosses 5% leaf area.',
-          safety_disclaimer: 'Follow current official product label and waiting period (waiting period: 30 days). Wear protective gear. Consult your local agricultural extension officer.',
-          source: 'PJTSAU Crop Protection Guidelines / ICAR-NRRI',
-          regional_applicability: 'Telangana & Andhra Pradesh',
-        },
-        sources: [
-          {
-            source_name: 'ICAR - National Rice Research Institute (NRRI)',
-            source_url: 'https://icar-nrri.gov.in',
-            source_type: 'icar',
-            license: 'Government Open Data / Public Agricultural Advisory',
-            retrieval_date: '2026-10-08',
-            region: ['Telangana', 'Andhra Pradesh', 'Pan-India'],
-            language: 'English, Telugu, Hindi',
-            verification_status: 'verified',
-            last_verified: '2026-10-01',
-          },
-        ],
-        requires_expert_review: false,
+    const cropIdKey = selectedCrop.toLowerCase().includes('paddy')
+      ? 'paddy'
+      : selectedCrop.toLowerCase().includes('cotton')
+      ? 'cotton'
+      : 'chilli';
+
+    try {
+      const { prediction: pred, segmentation: seg } = await runMultimodalInference({
+        images: uploads,
+        cropId: cropIdKey,
+        cropStage,
+        region,
       });
-    }, 2000);
+
+      setIsAnalyzing(false);
+      setPrediction(pred);
+      setSegmentation(seg);
+
+      // Save diagnostic session record
+      await saveDiagnosisSession({
+        crop_id: cropIdKey,
+        confidence: pred.confidence,
+        confidence_level: pred.confidence_level,
+        requires_expert_review: pred.requires_expert_review,
+        image_paths: uploads.map((u) => u.previewUrl),
+      });
+    } catch (err: unknown) {
+      setIsAnalyzing(false);
+      const msg = err instanceof Error ? err.message : 'Analysis failed. Please try again.';
+      setUploadError(msg);
+    }
   };
 
   return (
@@ -413,6 +385,67 @@ export const DiagnosePage: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* Lesion Segmentation & Multi-Angle Telemetry (§13, §18) */}
+          {segmentation && (
+            <div className="p-4 rounded-2xl bg-muted/40 border border-border grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+              <div>
+                <span className="text-muted-foreground block text-[10px] uppercase font-bold">
+                  Estimated Foliage Damage
+                </span>
+                <span className="text-base font-extrabold text-foreground">
+                  {segmentation.estimatedLesionAreaPercent}% Leaf Area
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block text-[10px] uppercase font-bold">
+                  Multi-Angle Consensus
+                </span>
+                <span className="text-base font-extrabold text-emerald-600">
+                  {(segmentation.multiAngleConsensusScore * 100).toFixed(0)}% Certainty
+                </span>
+              </div>
+              <div className="col-span-2 sm:col-span-1">
+                <span className="text-muted-foreground block text-[10px] uppercase font-bold">
+                  Lesion Morphology Type
+                </span>
+                <span className="text-xs font-semibold text-foreground capitalize">
+                  {segmentation.dominantSymptomType.replace('_', ' ')}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Mandatory Safety Rule Banner (§20) */}
+          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-start gap-3 text-xs text-amber-900 dark:text-amber-200">
+            <ShieldAlert className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
+            <div className="space-y-1">
+              <span className="font-bold text-xs uppercase tracking-wider block">
+                Statutory Safety Standard: AI-Assisted Identification
+              </span>
+              <p className="leading-relaxed opacity-95">
+                This prediction is an AI-assisted evidentiary analysis and <strong>NOT a guaranteed laboratory diagnosis</strong>. Fungal sporulations, viral vectors, and physiological stresses frequently exhibit overlapping foliar necrosis. Always verify critical chemical applications with official registered product labels and local mandal agricultural officers (MAO).
+              </p>
+            </div>
+          </div>
+
+          {/* Low Confidence or Complex Case Escalation (§51) */}
+          <div className="p-4 rounded-2xl bg-emerald-950/10 dark:bg-emerald-900/20 border border-emerald-600/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+            <div className="space-y-0.5">
+              <span className="font-bold text-foreground block">
+                Need Human Scientific Confirmation?
+              </span>
+              <p className="text-muted-foreground text-[11px]">
+                Request an agronomist review through our university extension partnership.
+              </p>
+            </div>
+            <a
+              href="/expert"
+              className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-semibold text-xs transition-colors shrink-0 flex items-center gap-1.5"
+            >
+              Request Agronomist Review <ChevronRight className="w-3.5 h-3.5" />
+            </a>
+          </div>
 
           {/* Sources & Provenance */}
           <div className="pt-2 text-xs text-muted-foreground flex items-center justify-between border-t border-border">
