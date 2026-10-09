@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Stethoscope, Upload, Camera, AlertCircle, ShieldAlert, CheckCircle2, Award, ChevronRight, X } from 'lucide-react';
-import { MetalButton } from '@/components/ui/MetalButton';
 import { ThinkingOrbWrapper } from '@/components/ui/ThinkingOrbWrapper';
 import { validateImageFile } from '@/services/supabase/storage';
 import { saveDiagnosisSession } from '@/services/supabase/repository';
@@ -9,25 +8,31 @@ import { runMultimodalInference, type LesionSegmentationEstimate } from '@/servi
 import { checkRateLimit } from '@/services/ai/rateLimiter';
 import type { PlantImageUpload, DiagnosisPrediction } from '@/types/agricultural';
 
+const CHILLI_SAMPLE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect width="400" height="400" fill="%231e3a1e"/><path d="M200,60 C260,110 320,200 290,300 C270,340 220,360 200,380 C180,360 130,340 110,300 C80,200 140,110 200,60 Z" fill="%234d7c0f" stroke="%23365314" stroke-width="6"/><path d="M200,60 L200,370" stroke="%23a3e635" stroke-width="4"/><path d="M200,140 Q250,130 280,160 M200,200 Q260,190 290,240 M200,260 Q240,250 270,290" stroke="%23a3e635" stroke-width="2.5"/><path d="M200,140 Q150,130 120,160 M200,200 Q140,190 110,240 M200,260 Q160,250 130,290" stroke="%23a3e635" stroke-width="2.5"/><circle cx="230" cy="180" r="18" fill="%23ca8a04" opacity="0.85"/><circle cx="160" cy="220" r="22" fill="%23eab308" opacity="0.8"/><circle cx="210" cy="270" r="15" fill="%23a16207" opacity="0.9"/><text x="200" y="38" font-family="sans-serif" font-size="16" font-weight="bold" fill="%23fef08a" text-anchor="middle">Chilli Leaf Curl &amp; Thrips (Sample)</text></svg>`;
+
+const PADDY_SAMPLE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect width="400" height="400" fill="%23132e1b"/><path d="M200,30 C230,120 250,240 220,380 C210,385 190,385 180,380 C150,240 170,120 200,30 Z" fill="%2315803d" stroke="%2314532d" stroke-width="5"/><path d="M200,30 L200,380" stroke="%2386efac" stroke-width="3"/><ellipse cx="200" cy="150" rx="18" ry="36" fill="%23fef9c3" stroke="%23991b1b" stroke-width="4"/><ellipse cx="200" cy="150" rx="9" ry="20" fill="%23e2e8f0"/><ellipse cx="204" cy="240" rx="14" ry="28" fill="%23fef9c3" stroke="%23991b1b" stroke-width="3"/><ellipse cx="204" cy="240" rx="7" ry="15" fill="%23cbd5e1"/><ellipse cx="196" cy="310" rx="12" ry="22" fill="%23fef9c3" stroke="%23991b1b" stroke-width="3"/><text x="200" y="380" font-family="sans-serif" font-size="16" font-weight="bold" fill="%23fef08a" text-anchor="middle">Rice Blast Spindle Lesions (Sample)</text></svg>`;
+
+const COTTON_SAMPLE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect width="400" height="400" fill="%232b1f13"/><circle cx="200" cy="200" r="110" fill="%234d7c0f" stroke="%23365314" stroke-width="6"/><path d="M140,210 C160,170 240,170 260,210 C240,260 160,260 140,210 Z" fill="%23f8fafc"/><circle cx="190" cy="175" r="9" fill="%23451a03"/><path d="M190,175 Q210,195 220,185" stroke="%23f43f5e" stroke-width="6" stroke-linecap="round"/><circle cx="220" cy="185" r="4" fill="%239f1239"/><text x="200" y="360" font-family="sans-serif" font-size="16" font-weight="bold" fill="%23fbcfe8" text-anchor="middle">Cotton Bollworm Entrance (Sample)</text></svg>`;
+
+const TOMATO_SAMPLE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect width="400" height="400" fill="%231a2e16"/><path d="M200,50 C290,120 330,220 280,330 C240,365 210,350 200,370 C190,350 160,365 120,330 C70,220 110,120 200,50 Z" fill="%233f6212" stroke="%231a2e05" stroke-width="5"/><circle cx="190" cy="170" r="38" fill="%23ca8a04" opacity="0.6"/><circle cx="190" cy="170" r="28" fill="%23713f12" stroke="%23451a03" stroke-width="3"/><circle cx="190" cy="170" r="18" fill="%23451a03" stroke="%231c1917" stroke-width="2"/><circle cx="190" cy="170" r="8" fill="%231c1917"/><circle cx="240" cy="250" r="24" fill="%23ca8a04" opacity="0.6"/><circle cx="240" cy="250" r="16" fill="%23713f12" stroke="%23451a03" stroke-width="2"/><circle cx="240" cy="250" r="8" fill="%231c1917"/><text x="200" y="375" font-family="sans-serif" font-size="16" font-weight="bold" fill="%23fef08a" text-anchor="middle">Tomato Early Blight Target Rings (Sample)</text></svg>`;
+
 export const DiagnosePage: React.FC = () => {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [activeUploadPart, setActiveUploadPart] = useState<'leaf' | 'whole_plant' | 'stem'>('leaf');
   const [selectedCrop, setSelectedCrop] = useState('Paddy / Rice');
-  const [cropStage, setCropStage] = useState('Tillering');
+  const [cropStage, setCropStage] = useState('Tillering / Vegetative');
   const [region, setRegion] = useState('Telangana (Warangal / Nalgonda)');
   const [uploads, setUploads] = useState<PlantImageUpload[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [prediction, setPrediction] = useState<DiagnosisPrediction | null>(null);
   const [segmentation, setSegmentation] = useState<LesionSegmentationEstimate | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const processFile = (file: File) => {
     setUploadError(null);
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    const file = files[0];
     const validation = validateImageFile(file);
     if (!validation.isValid) {
       setUploadError(validation.error || 'Invalid image file.');
@@ -44,6 +49,23 @@ export const DiagnosePage: React.FC = () => {
     setUploads((prev) => [...prev, newUpload]);
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    processFile(files[0]);
+    if (e.target) e.target.value = '';
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      processFile(files[0]);
+    }
+  };
+
   const triggerFileUpload = (part: 'leaf' | 'whole_plant' | 'stem') => {
     setActiveUploadPart(part);
     if (fileInputRef.current) {
@@ -51,8 +73,32 @@ export const DiagnosePage: React.FC = () => {
     }
   };
 
+  const triggerCameraUpload = (part: 'leaf' | 'whole_plant' | 'stem') => {
+    setActiveUploadPart(part);
+    if (cameraInputRef.current) {
+      cameraInputRef.current.click();
+    }
+  };
+
   const handleRemoveUpload = (id: string) => {
     setUploads((prev) => prev.filter((u) => u.id !== id));
+  };
+
+  const loadSample = (
+    cropName: string,
+    stage: string,
+    svgData: string,
+    part: 'leaf' | 'whole_plant' | 'stem'
+  ) => {
+    setSelectedCrop(cropName);
+    setCropStage(stage);
+    setUploadError(null);
+    const sampleUpload: PlantImageUpload = {
+      id: 'demo-' + Date.now(),
+      previewUrl: svgData,
+      plant_part: part,
+    };
+    setUploads([sampleUpload]);
   };
 
   const handleRunAnalysis = async () => {
@@ -72,10 +118,16 @@ export const DiagnosePage: React.FC = () => {
     setPrediction(null);
     setSegmentation(null);
 
-    const cropIdKey = selectedCrop.toLowerCase().includes('paddy')
+    const cropIdKey = selectedCrop.toLowerCase().includes('paddy') || selectedCrop.toLowerCase().includes('rice')
       ? 'paddy'
       : selectedCrop.toLowerCase().includes('cotton')
       ? 'cotton'
+      : selectedCrop.toLowerCase().includes('tomato')
+      ? 'tomato'
+      : selectedCrop.toLowerCase().includes('maize') || selectedCrop.toLowerCase().includes('corn')
+      ? 'maize'
+      : selectedCrop.toLowerCase().includes('groundnut') || selectedCrop.toLowerCase().includes('peanut')
+      ? 'groundnut'
       : 'chilli';
 
     try {
@@ -121,6 +173,52 @@ export const DiagnosePage: React.FC = () => {
         </p>
       </div>
 
+      {/* 1-Click Interactive Test Samples */}
+      <div className="p-4 rounded-2xl bg-card border border-border space-y-2.5">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            ⚡ Quick Test Samples (1-Click Instant Demo)
+          </span>
+          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+            Test any sample without local files
+          </span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <button
+            type="button"
+            onClick={() => loadSample('Chilli', 'Vegetative / ఎదుగుదల దశ', CHILLI_SAMPLE_SVG, 'leaf')}
+            className="p-2.5 rounded-xl border border-border bg-background hover:bg-muted text-left text-xs space-y-1 transition-all hover:border-emerald-500 cursor-pointer shadow-xs"
+          >
+            <span className="font-bold text-foreground block">🌶️ Chilli Leaf Curl</span>
+            <span className="text-[10px] text-muted-foreground block">Thrips &amp; Mites Complex</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => loadSample('Paddy / Rice', 'Tillering / Vegetative', PADDY_SAMPLE_SVG, 'leaf')}
+            className="p-2.5 rounded-xl border border-border bg-background hover:bg-muted text-left text-xs space-y-1 transition-all hover:border-emerald-500 cursor-pointer shadow-xs"
+          >
+            <span className="font-bold text-foreground block">🌾 Paddy Blast</span>
+            <span className="text-[10px] text-muted-foreground block">Spindle Lesions</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => loadSample('Cotton', 'Fruiting / Maturation', COTTON_SAMPLE_SVG, 'stem')}
+            className="p-2.5 rounded-xl border border-border bg-background hover:bg-muted text-left text-xs space-y-1 transition-all hover:border-emerald-500 cursor-pointer shadow-xs"
+          >
+            <span className="font-bold text-foreground block">☁️ Cotton Bollworm</span>
+            <span className="text-[10px] text-muted-foreground block">Pink Bollworm Entrance</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => loadSample('Tomato', 'Vegetative / ఎదుగుదల దశ', TOMATO_SAMPLE_SVG, 'leaf')}
+            className="p-2.5 rounded-xl border border-border bg-background hover:bg-muted text-left text-xs space-y-1 transition-all hover:border-emerald-500 cursor-pointer shadow-xs"
+          >
+            <span className="font-bold text-foreground block">🍅 Tomato Early Blight</span>
+            <span className="text-[10px] text-muted-foreground block">Target-Ring Lesions</span>
+          </button>
+        </div>
+      </div>
+
       {/* Input Form & Image Upload Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left Column: Crop Context */}
@@ -139,6 +237,9 @@ export const DiagnosePage: React.FC = () => {
               <option value="Paddy / Rice">Paddy / Rice (వరి / धान)</option>
               <option value="Cotton">Cotton (ప్రత్తి / कपास)</option>
               <option value="Chilli">Chilli (మిర్చి / मिर्च)</option>
+              <option value="Tomato">Tomato (టమాట / टमाटर)</option>
+              <option value="Maize / Corn">Maize / Corn (మొక్కజొన్న / मक्का)</option>
+              <option value="Groundnut / Peanut">Groundnut / Peanut (వేరుశనగ / मूंगफली)</option>
             </select>
           </div>
 
@@ -152,7 +253,7 @@ export const DiagnosePage: React.FC = () => {
               <option value="Nursery / Seedling">Nursery / Seedling</option>
               <option value="Tillering / Vegetative">Tillering / Vegetative</option>
               <option value="Flowering / Panicle Initiation">Flowering / Panicle</option>
-              <option value="Fruiting / Boll Development">Fruiting / Maturation</option>
+              <option value="Fruiting / Maturation">Fruiting / Maturation</option>
             </select>
           </div>
 
@@ -180,12 +281,28 @@ export const DiagnosePage: React.FC = () => {
               Multi-Angle Image Evidence
             </h2>
             <span className="text-xs text-emerald-700 dark:text-emerald-400 font-medium">
-              {uploads.length} / 3 Angles Uploaded
+              {uploads.length} Image{uploads.length === 1 ? '' : 's'} Loaded
             </span>
           </div>
 
-          {/* Upload Area */}
-          <div className="border-2 border-dashed border-emerald-800/30 dark:border-emerald-700/40 rounded-2xl p-6 text-center space-y-3 bg-emerald-950/5 dark:bg-emerald-950/20">
+          {/* Interactive Upload / Drop Area */}
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragging(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              setIsDragging(false);
+            }}
+            onDrop={handleDrop}
+            onClick={() => triggerFileUpload('leaf')}
+            className={`border-2 border-dashed rounded-2xl p-6 text-center space-y-3 cursor-pointer transition-all ${
+              isDragging
+                ? 'border-emerald-500 bg-emerald-500/15'
+                : 'border-emerald-800/30 dark:border-emerald-700/40 bg-emerald-950/5 dark:bg-emerald-950/20 hover:border-emerald-500'
+            }`}
+          >
             <div className="w-12 h-12 rounded-full bg-emerald-700/10 dark:bg-emerald-500/20 mx-auto flex items-center justify-center text-emerald-600">
               <Upload className="w-6 h-6" />
             </div>
@@ -194,16 +311,26 @@ export const DiagnosePage: React.FC = () => {
                 {t('diagnose.upload_zone')}
               </p>
               <p className="text-[11px] text-muted-foreground">
-                {t('diagnose.multi_image_hint')}
+                Click anywhere or drag &amp; drop photos here. Mobile cameras supported directly.
               </p>
             </div>
 
-            {/* Hidden native file input */}
+            {/* Hidden native file input (Accepts all image formats) */}
             <input
               type="file"
               ref={fileInputRef}
               onChange={handleFileChange}
-              accept="image/jpeg,image/png,image/webp"
+              accept="image/*"
+              className="hidden"
+            />
+
+            {/* Hidden native camera direct capture input */}
+            <input
+              type="file"
+              ref={cameraInputRef}
+              onChange={handleFileChange}
+              accept="image/*"
+              capture="environment"
               className="hidden"
             />
 
@@ -216,27 +343,37 @@ export const DiagnosePage: React.FC = () => {
             )}
 
             {/* Camera / Upload Action Buttons */}
-            <div className="flex flex-wrap justify-center gap-2 pt-2">
+            <div
+              className="flex flex-wrap justify-center gap-2 pt-2"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={() => triggerCameraUpload('leaf')}
+                className="px-3.5 py-2 text-xs rounded-xl border border-emerald-600 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-700 dark:text-emerald-300 font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+              >
+                <Camera className="w-3.5 h-3.5 text-emerald-600" /> 📸 Snap with Camera
+              </button>
               <button
                 type="button"
                 onClick={() => triggerFileUpload('leaf')}
-                className="px-3.5 py-2 text-xs rounded-xl border border-emerald-700/30 bg-background hover:bg-muted font-medium flex items-center gap-1.5 shadow-xs transition-colors"
+                className="px-3.5 py-2 text-xs rounded-xl border border-emerald-700/30 bg-background hover:bg-muted font-medium flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
               >
-                <Camera className="w-3.5 h-3.5 text-emerald-600" /> + Add Leaf Close-up
+                + Add Leaf Close-up
               </button>
               <button
                 type="button"
                 onClick={() => triggerFileUpload('whole_plant')}
-                className="px-3.5 py-2 text-xs rounded-xl border border-emerald-700/30 bg-background hover:bg-muted font-medium flex items-center gap-1.5 shadow-xs transition-colors"
+                className="px-3.5 py-2 text-xs rounded-xl border border-emerald-700/30 bg-background hover:bg-muted font-medium flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
               >
-                <Camera className="w-3.5 h-3.5 text-emerald-600" /> + Add Whole Plant
+                + Add Whole Plant
               </button>
               <button
                 type="button"
                 onClick={() => triggerFileUpload('stem')}
-                className="px-3.5 py-2 text-xs rounded-xl border border-emerald-700/30 bg-background hover:bg-muted font-medium flex items-center gap-1.5 shadow-xs transition-colors"
+                className="px-3.5 py-2 text-xs rounded-xl border border-emerald-700/30 bg-background hover:bg-muted font-medium flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
               >
-                <Camera className="w-3.5 h-3.5 text-emerald-600" /> + Add Stem / Pest
+                + Add Stem / Pest
               </button>
             </div>
           </div>
@@ -250,7 +387,7 @@ export const DiagnosePage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleRemoveUpload(u.id)}
-                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-rose-600 transition-colors"
+                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-rose-600 transition-colors cursor-pointer"
                     aria-label="Remove image"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -269,7 +406,7 @@ export const DiagnosePage: React.FC = () => {
               type="button"
               disabled={uploads.length === 0 || isAnalyzing}
               onClick={handleRunAnalysis}
-              className="px-6 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2"
+              className="px-6 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
             >
               <Stethoscope className="w-4 h-4" />
               {isAnalyzing ? t('diagnose.analyzing') : t('diagnose.analyze_btn')}
@@ -323,7 +460,7 @@ export const DiagnosePage: React.FC = () => {
                 {t('diagnose.observed_symptoms')}
               </h3>
               <ul className="space-y-1.5 text-xs text-muted-foreground bg-muted/40 p-4 rounded-xl">
-                {prediction.observed_symptoms.map((s, i) => (
+                {(prediction.observed_symptoms || []).map((s, i) => (
                   <li key={i} className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
                     <span>{s}</span>
@@ -338,7 +475,7 @@ export const DiagnosePage: React.FC = () => {
                 {t('diagnose.possible_cause')}
               </h3>
               <ul className="space-y-1.5 text-xs text-muted-foreground bg-muted/40 p-4 rounded-xl">
-                {prediction.possible_causes.map((c, i) => (
+                {(prediction.possible_causes || []).map((c, i) => (
                   <li key={i} className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
                     <span>{c}</span>
@@ -360,7 +497,7 @@ export const DiagnosePage: React.FC = () => {
                   Cultural & Mechanical Control:
                 </span>
                 <ul className="text-xs text-muted-foreground space-y-1">
-                  {prediction.what_to_do_now.map((act, i) => (
+                  {(prediction.what_to_do_now || []).map((act, i) => (
                     <li key={i}>• {act}</li>
                   ))}
                 </ul>
@@ -371,7 +508,7 @@ export const DiagnosePage: React.FC = () => {
                   Biological Control (IPM):
                 </span>
                 <ul className="text-xs text-muted-foreground space-y-1">
-                  {prediction.ipm_guidance.map((ipm, i) => (
+                  {(prediction.ipm_guidance || []).map((ipm, i) => (
                     <li key={i}>• {ipm}</li>
                   ))}
                 </ul>

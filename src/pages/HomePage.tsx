@@ -49,6 +49,33 @@ export const HomePage: React.FC = () => {
       conditions: ['Thrips (తామర పురుగులు)', 'Anthracnose / Die-back', 'Gemini Virus (ఆకు ముడుత)'],
       color: 'from-red-700/20 to-red-900/30 border-red-600/30',
     },
+    {
+      name: 'Tomato',
+      te: 'టమాట',
+      hi: 'टमाटर',
+      scientific: 'Solanum lycopersicum',
+      tag: 'Vegetable Crop',
+      conditions: ['Early Blight (ముందస్తు ఆకుమచ్చ)', 'Leaf Curl Virus', 'Fruit Borer'],
+      color: 'from-orange-700/20 to-orange-900/30 border-orange-600/30',
+    },
+    {
+      name: 'Maize / Corn',
+      te: 'మొక్కజొన్న',
+      hi: 'मक्का',
+      scientific: 'Zea mays',
+      tag: 'Coarse Grain',
+      conditions: ['Fall Armyworm (కత్తెర పురుగు)', 'Turcicum Leaf Blight', 'Stem Borer'],
+      color: 'from-yellow-700/20 to-yellow-900/30 border-yellow-600/30',
+    },
+    {
+      name: 'Groundnut / Peanut',
+      te: 'వేరుశనగ',
+      hi: 'मूंगफली',
+      scientific: 'Arachis hypogaea',
+      tag: 'Oilseed Crop',
+      conditions: ['Tikka Leaf Spot (తిక్కా తెగులు)', 'Collar Rot', 'Rust'],
+      color: 'from-stone-700/20 to-stone-900/30 border-stone-600/30',
+    },
   ];
 
   const workflowSteps = [
@@ -112,7 +139,7 @@ export const HomePage: React.FC = () => {
             <ThinkingOrbWrapper
               state="breathing"
               size={64}
-              label="AgriAI Diagnostics Engine Active"
+              label="NS Agri AI Diagnostics Engine Active"
             />
           </div>
 
@@ -139,6 +166,12 @@ export const HomePage: React.FC = () => {
               <BookOpen className="w-4 h-4 text-emerald-600" />
               {t('hero.cta_library')}
             </Link>
+          </div>
+
+          {/* Voice AI Callout for Non-typing Farmers */}
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-medium">
+            <span className="text-base">🎙️</span>
+            <span>Voice-enabled: Farmers can speak directly in Telugu (తెలుగు), Hindi (हिन्दी), or English!</span>
           </div>
 
           {/* Safety Micro-notice */}
@@ -212,7 +245,7 @@ export const HomePage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center space-y-3">
             <h2 className="text-3xl font-bold tracking-tight text-foreground">
-              How AgriAI Doctor Diagnoses Your Crops
+              How NS Agri AI Doctor Diagnoses Your Crops
             </h2>
             <p className="text-sm text-muted-foreground max-w-xl mx-auto">
               Built on scientific multi-angle evidence and strictly verified agricultural knowledge bases.
@@ -254,7 +287,7 @@ export const HomePage: React.FC = () => {
               Predict Disease Outbreaks Before They Spread
             </h3>
             <p className="text-xs sm:text-sm text-emerald-100/80 leading-relaxed">
-              Fungal spores and insect reproduction surge under specific relative humidity and temperature windows. AgriAI correlates your local microclimate to calculate proactive preventive advisories.
+              Fungal spores and insect reproduction surge under specific relative humidity and temperature windows. NS Agri AI correlates your local microclimate to calculate proactive preventive advisories.
             </p>
           </div>
 

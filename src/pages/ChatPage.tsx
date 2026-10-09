@@ -18,6 +18,8 @@ import {
   ExternalLink,
   Sparkles,
   CheckCircle2,
+  Mic,
+  MicOff,
 } from 'lucide-react';
 import type { ChatMessage, ThinkingOrbState } from '@/types/agricultural';
 import {
@@ -38,25 +40,28 @@ const PROMPT_SUGGESTIONS = [
 ];
 
 export const ChatPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [input, setInput] = useState('');
   const [attachedImage, setAttachedImage] = useState<string | null>(null);
   const [thinkingState, setThinkingState] = useState<ThinkingOrbState>('breathing');
   const [thinkingLabel, setThinkingLabel] = useState<string>('Ready for agricultural query');
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
+  const [isListening, setIsListening] = useState<boolean>(false);
+  const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
   const [expandedDetails, setExpandedDetails] = useState<Record<string, boolean>>({});
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   const [messages, setMessages] = useState<ExtendedChatMessage[]>([
     {
       id: 'm-welcome',
       sender: 'assistant',
-      content: `Namaste! I am AgriAI, your evidence-based agricultural decision-support doctor.
+      content: `Namaste! I am NS Agri AI, your evidence-based agricultural decision-support doctor.
 You can ask me questions about crop diseases, pest outbreaks, nutrient deficiencies, or IPM prevention in English, Telugu (తెలుగు), Hindi (हिन्दी), or mixed farmer phrasing (e.g., "My chilli leaves yellow ga unnayi").
 
-Every recommendation follows strict ICAR, PJTSAU, and ANGRAU verified packages of practices with registered CIB&RC active ingredients.`,
+Every recommendation follows strict ICAR, PJTSAU, and ANGRAU verified packages of practices with registered CIB&RC active ingredients. If you cannot type, click the microphone button below to speak directly!`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -110,6 +115,91 @@ Every recommendation follows strict ICAR, PJTSAU, and ANGRAU verified packages o
     setIsSpeaking(true);
     window.speechSynthesis.speak(utterance);
   };
+
+  const toggleVoiceListening = () => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setVoiceNotice('Voice recognition is not supported in this browser. Please use Chrome or Edge.');
+      setTimeout(() => setVoiceNotice(null), 4000);
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      setVoiceNotice(null);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+
+      // Select BCP-47 speech recognition locale based on active language
+      const currentLang = i18n.language;
+      if (currentLang === 'te') {
+        recognition.lang = 'te-IN'; // Telugu
+      } else if (currentLang === 'hi') {
+        recognition.lang = 'hi-IN'; // Hindi
+      } else {
+        recognition.lang = 'en-IN'; // Indian English
+      }
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        const langName =
+          recognition.lang === 'te-IN'
+            ? 'తెలుగు (Telugu)'
+            : recognition.lang === 'hi-IN'
+            ? 'हिन्दी (Hindi)'
+            : 'English';
+        setVoiceNotice(`🎙️ Listening in ${langName}... Speak your crop problem now!`);
+      };
+
+      recognition.onresult = (event: any) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          transcript += event.results[i][0].transcript;
+        }
+        if (transcript) {
+          setInput(transcript);
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        console.warn('Speech recognition warning:', event.error);
+        setIsListening(false);
+        if (event.error === 'not-allowed') {
+          setVoiceNotice('Microphone access blocked. Please allow mic in browser settings.');
+        } else if (event.error !== 'no-speech') {
+          setVoiceNotice(`Microphone status: ${event.error}`);
+        }
+        setTimeout(() => setVoiceNotice(null), 4000);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+        setVoiceNotice(null);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.error('Failed to initialize speech recognition', err);
+      setIsListening(false);
+      setVoiceNotice('Could not start microphone. Please check permissions.');
+      setTimeout(() => setVoiceNotice(null), 4000);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.stop();
+    };
+  }, []);
 
   const handleSend = async (overrideQuery?: string) => {
     const queryToSend = (overrideQuery || input).trim();
@@ -501,7 +591,26 @@ Every recommendation follows strict ICAR, PJTSAU, and ANGRAU verified packages o
         </div>
       )}
 
-      {/* Input Form with Camera & Metal-FX Send Button */}
+      {/* Live Voice Assistant Status Banner */}
+      {(isListening || voiceNotice) && (
+        <div className="flex items-center gap-2.5 p-3 px-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-xs text-emerald-800 dark:text-emerald-300 shadow-xs">
+          <Mic className="w-4 h-4 text-emerald-600 animate-bounce shrink-0" />
+          <span className="font-semibold flex-1">
+            {voiceNotice || 'Listening to farmer speech... Speak now in Telugu, Hindi, or English.'}
+          </span>
+          {isListening && (
+            <button
+              type="button"
+              onClick={toggleVoiceListening}
+              className="text-[10px] uppercase px-2 py-0.5 rounded-lg bg-rose-500/20 text-rose-700 dark:text-rose-300 font-bold hover:bg-rose-500/30 cursor-pointer transition-colors"
+            >
+              Stop
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Input Form with Camera, Mic & Metal-FX Send Button */}
       <div className="p-2 rounded-2xl bg-card border border-border shadow-md flex items-center gap-2">
         <input
           type="file"
@@ -518,6 +627,26 @@ Every recommendation follows strict ICAR, PJTSAU, and ANGRAU verified packages o
           className="p-2 text-muted-foreground hover:text-emerald-700 dark:hover:text-emerald-400 hover:bg-muted rounded-xl transition-colors cursor-pointer"
         >
           <ImageIcon className="w-5 h-5" />
+        </button>
+
+        {/* Microphone Button for Farmers */}
+        <button
+          type="button"
+          onClick={toggleVoiceListening}
+          title={isListening ? 'Stop Listening' : 'Speak to AI (Telugu / Hindi / English)'}
+          className={`p-2 rounded-xl transition-all cursor-pointer relative ${
+            isListening
+              ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400 ring-2 ring-rose-500 animate-pulse'
+              : 'text-muted-foreground hover:text-emerald-700 dark:hover:text-emerald-400 hover:bg-muted'
+          }`}
+        >
+          {isListening ? <MicOff className="w-5 h-5 text-rose-600" /> : <Mic className="w-5 h-5" />}
+          {isListening && (
+            <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500" />
+            </span>
+          )}
         </button>
 
         <input

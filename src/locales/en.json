@@ -1,13 +1,13 @@
 {
   "app": {
-    "title": "AgriAI Doctor",
+    "title": "NS Agri AI Doctor",
     "tagline": "Intelligent Crop Health, Pest & Farm Advisory Platform",
     "disclaimer": "AI assistance is an evidence-backed decision support tool, not a guaranteed diagnosis. Always verify critical decisions with qualified agricultural experts."
   },
   "nav": {
     "home": "Home",
     "diagnose": "Scan Crop",
-    "chatbot": "AgriAI Assistant",
+    "chatbot": "NS Agri AI Assistant",
     "library": "Crop Encyclopedia",
     "dashboard": "Farm Dashboard",
     "weather": "Weather & Risk",
@@ -19,7 +19,7 @@
     "title_highlight": "UNDERSTOOD BY AI.",
     "subtitle": "Detect crop diseases, identify pests, assess nutrient stress, and get evidence-based ICAR-aligned guidance in English, Telugu, and Hindi.",
     "cta_scan": "Scan My Crop",
-    "cta_chat": "Ask AgriAI",
+    "cta_chat": "Ask NS Agri AI",
     "cta_library": "Explore Crop Library"
   },
   "diagnose": {
@@ -44,7 +44,7 @@
     "expert_escalation": "Confidence is moderate/low. Request human agricultural scientist review."
   },
   "chat": {
-    "title": "AgriAI Agricultural Assistant",
+    "title": "NS Agri AI Agricultural Assistant",
     "placeholder": "Ask in English, Telugu, Hindi, or mixed (e.g. 'My chilli leaves yellow ga unnayi')...",
     "send": "Send Query",
     "thinking": {
@@ -52,7 +52,7 @@
       "searching": "Searching verified agricultural database...",
       "solving": "Analyzing symptoms and disease patterns...",
       "composing": "Synthesizing evidence-based guidance...",
-      "breathing": "AgriAI Ready"
+      "breathing": "NS Agri AI Ready"
     }
   },
   "farm": {

@@ -196,7 +196,7 @@ export const AdminPage: React.FC = () => {
           </div>
 
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Standard random splitting leaks images from the same plant or field session into both train and test partitions. AgriAI groups all images strictly by <strong className="text-foreground">Field Group ID</strong> (Farmer + Field + Capture Session) before partitioning.
+            Standard random splitting leaks images from the same plant or field session into both train and test partitions. NS Agri AI groups all images strictly by <strong className="text-foreground">Field Group ID</strong> (Farmer + Field + Capture Session) before partitioning.
           </p>
 
           <div className="grid grid-cols-3 gap-3 pt-2">

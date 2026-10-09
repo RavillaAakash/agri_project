@@ -305,7 +305,7 @@ export async function generateGroundedRecommendation(
       prevention: ['Sliding-window rate limits protect inference availability for all farmers during peak pest outbreaks.'],
       ipmBiological: [],
       importantCaution: 'System defense and anti-abuse safeguards active.',
-      sources: [{ name: 'AgriAI Security Policy', url: 'https://agriai.telangana-rythu.org', status: 'verified' }],
+      sources: [{ name: 'NS Agri AI Security Policy', url: 'https://agriai.telangana-rythu.org', status: 'verified' }],
       advancedScientificDetails: 'Rate limiter sliding-window threshold: 25 requests / min.',
       isInjectionBlocked: true,
       formattedMarkdown: '',

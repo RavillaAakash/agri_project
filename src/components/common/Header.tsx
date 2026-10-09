@@ -44,7 +44,7 @@ export const Header: React.FC = () => {
           </div>
           <div>
             <div className="text-lg font-bold tracking-tight text-foreground flex items-center gap-1.5">
-              <span>AgriAI</span>
+              <span>NS Agri AI</span>
               <span className="text-xs px-1.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 font-semibold border border-emerald-300/40">
                 Doctor
               </span>

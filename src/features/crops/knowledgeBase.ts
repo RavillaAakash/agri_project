@@ -594,4 +594,197 @@ export const DETAILED_CONDITIONS: AgriculturalCondition[] = [
     },
     provenance: PROVENANCE_ANGRAU,
   },
+
+  // --------------------------------------------------------------------------
+  // TOMATO CONDITIONS
+  // --------------------------------------------------------------------------
+  {
+    id: 'tomato-early-blight',
+    crop_id: 'tomato',
+    problem_type: 'disease',
+    category: 'fungal',
+    common_name: 'Tomato Early Blight (ముందస్తు ఆకుమచ్చ తెగులు)',
+    scientific_name: 'Alternaria solani',
+    local_names: {
+      en: 'Tomato Early Blight',
+      te: 'టమాట ముందస్తు ఆకుమచ్చ తెగులు',
+      hi: 'टमाटर का अगेती झुलसा रोग',
+      common_farmer_terms: ['ఆకు మచ్చ', 'టమాట తెగులు', 'అగేती झुलसा'],
+    },
+    symptoms: {
+      en: [
+        'Dark brown to black spots with concentric rings resembling a "target board" on older leaves.',
+        'Yellow chlorotic halos surrounding lesions, leading to extensive defoliation and sunscald on exposed fruit.',
+        'Dark, leathery sunken lesions at the stem-end calyx of mature fruits.',
+      ],
+      te: [
+        'ముదురు ఆకులపై వలయాకారపు చక్రాల వంటి లక్షణాలతో కూడిన గోధుమ-నలుపు మచ్చలు ("టార్గెట్ బోర్డ్").',
+        'మచ్చల చుట్టూ పసుపు రంగు వలయం ఏర్పడి ఆకులు ఎండి రాలిపోతాయి.',
+        'కాయల తొడిమల వద్ద నల్లటి, తోలు వంటి గుంట పడిన మచ్చలు ఏర్పడతాయి.',
+      ],
+      hi: [
+        'पुरानी पत्तियों पर गोल छल्लेदार गहरे भूरे या काले रंग के धब्बे ("टारगेट बोर्ड" जैसे)।',
+        'धब्बों के चारों ओर पीला घेरा बन जाता है जिससे पत्तियां समय से पहले गिर जाती हैं।',
+      ],
+    },
+    affected_plant_parts: ['leaf', 'stem', 'fruit'],
+    favorable_conditions: {
+      temperature_range: '24-29°C',
+      humidity_range: 'High humidity (>80%) with heavy dew drops',
+      weather_triggers: ['Warm wet weather alternating with sunny spells'],
+    },
+    severity: 'high',
+    prevention_methods: [
+      'Crop rotation with non-solanaceous crops for at least 2 seasons.',
+      'Mulch soil surface with straw or silver-black plastic mulch to prevent rain splashing of soil spores.',
+    ],
+    cultural_control: [
+      'Prune lower foliage touching the soil bed to improve bottom air movement.',
+      'Adopt drip irrigation instead of furrow flood irrigation to keep foliage dry.',
+    ],
+    mechanical_control: ['Hand-pick and burn lower diseased leaves at first detection.'],
+    biological_control: ['Foliar spray with Trichoderma harzianum or Pseudomonas fluorescens @ 10g/L.'],
+    ipm_recommendations: ['Monitor weekly on lower 3 leaves. Spray at earliest lesion detection.'],
+    chemical_management: {
+      is_applicable: true,
+      active_ingredient: 'Mancozeb 75% WP @ 2.5 g/L OR Azoxystrobin 23% SC @ 1.0 ml/L',
+      official_recommendation: 'Spray thoroughly covering lower leaves. Repeat every 10-12 days under wet forecast.',
+      safety_disclaimer: 'Pre-harvest interval: 7 days. Wear protective gloves and wash hands thoroughly.',
+      regional_approval: 'PJTSAU / ANGRAU Recommended Package of Practice',
+      source: 'ICAR - Indian Institute of Horticultural Research (IIHR), Bengaluru',
+    },
+    provenance: PROVENANCE_PJTSAU,
+  },
+
+  // --------------------------------------------------------------------------
+  // MAIZE CONDITIONS
+  // --------------------------------------------------------------------------
+  {
+    id: 'maize-fall-armyworm',
+    crop_id: 'maize',
+    problem_type: 'pest',
+    category: 'insect',
+    common_name: 'Fall Armyworm / FAW (మొక్కజొన్న కత్తెర పురుగు)',
+    scientific_name: 'Spodoptera frugiperda',
+    local_names: {
+      en: 'Maize Fall Armyworm',
+      te: 'మొక్కజొన్న కత్తెర పురుగు',
+      hi: 'मक्का का फॉल आर्मीवर्म (सैनिक कीट)',
+      common_farmer_terms: ['కత్తెర పురుగు', 'లద్దె పురుగు', 'आर्मीवर्म'],
+    },
+    symptoms: {
+      en: [
+        'Elongated pin-hole windowing on young whorl leaves caused by early instar larvae.',
+        'Extensive ragged "shot hole" tears and heavy sawdust-like yellowish-brown frass accumulating in the whorl.',
+        'Inverted Y-shaped suture marking on head capsule and four square dots on eighth abdominal segment of caterpillar.',
+      ],
+      te: [
+        'చిన్న పురుగులు ఆకులను గోకడం వల్ల ఆకులపై కిటికీల వంటి తెల్లటి గీతలు కనిపిస్తాయి.',
+        'పెద్ద పురుగులు సుడులను కొరికివేయడం వల్ల ఆకులు కత్తెరతో కత్తిరించినట్లు చిరిగిపోయి, సుడుల్లో రంపపు పొట్టు వంటి పురుగు విసర్జన కనిపిస్తుంది.',
+        'పురుగు తల భాగంపై తిరగబడిన "Y" ఆకారపు గుర్తు మరియు తోక భాగంలో నాలుగు నల్లటి చుక్కలు ఉంటాయి.',
+      ],
+      hi: [
+        'पत्तियों पर खिड़की जैसे सफेद निशान और कतरने के बड़े छेद।',
+        'पौधे के गोफ में लकड़ी के बुरादे जैसा कीट मल जमा हो जाता है।',
+      ],
+    },
+    affected_plant_parts: ['leaf', 'stem'],
+    favorable_conditions: {
+      temperature_range: '25-32°C',
+      weather_triggers: ['Intermittent light rains followed by warm dry spells favors moth flight and egg hatching'],
+    },
+    severity: 'critical',
+    prevention_methods: [
+      'Synchronous community sowing within a 15-day window to avoid staggered host availability.',
+      'Intercrop maize with pulses like cowpea, blackgram, or pigeonpea (2:1 ratio).',
+    ],
+    cultural_control: [
+      'Deep summer ploughing to expose pupae to sun and predatory birds.',
+      'Clean cultivation and destruction of alternative grass weed hosts.',
+    ],
+    mechanical_control: [
+      'Apply fine dry sand mixed with neem seed powder (9:1) into whorls of affected plants.',
+      'Install 5 pheromone traps per acre for early monitoring.',
+    ],
+    biological_control: [
+      'Release Trichogramma chilonis egg parasitoids @ 50,000/acre at weekly intervals.',
+      'Spray Metarhizium rileyi or Bacillus thuringiensis (Bt) kurstaki @ 2 g/L.',
+    ],
+    ipm_recommendations: [
+      'ETL: 5% infested plants at seedling stage; 10-20% damaged whorls at mid-vegetative stage.',
+    ],
+    chemical_management: {
+      is_applicable: true,
+      active_ingredient: 'Chlorantraniliprole 18.5% SC @ 0.4 ml/L OR Spinetoram 11.7% SC @ 0.5 ml/L',
+      official_recommendation: 'Direct spray strictly into the central plant whorl using a knapsack sprayer with nozzle cap removed.',
+      safety_disclaimer: 'Pre-harvest waiting period: 25 days. Observe strict safety gear guidelines.',
+      regional_approval: 'ICAR-IIMR & CIB&RC Approved Protocol',
+      source: 'ICAR - Indian Institute of Maize Research (IIMR), Ludhiana',
+    },
+    provenance: PROVENANCE_ICAR_NRRI,
+  },
+
+  // --------------------------------------------------------------------------
+  // GROUNDNUT CONDITIONS
+  // --------------------------------------------------------------------------
+  {
+    id: 'groundnut-tikka-disease',
+    crop_id: 'groundnut',
+    problem_type: 'disease',
+    category: 'fungal',
+    common_name: 'Groundnut Tikka Leaf Spot (వేరుశనగ తిక్కా తెగులు / ఆకుమచ్చ)',
+    scientific_name: 'Cercospora arachidicola & Phaeoisariopsis personata',
+    local_names: {
+      en: 'Groundnut Tikka Leaf Spot',
+      te: 'వేరుశనగ తిక్కా ఆకుమచ్చ తెగులు',
+      hi: 'मूंगफली का टिक्का रोग (पत्ती धब्बा)',
+      common_farmer_terms: ['తిక్కా తెగులు', 'పల్లీల ఆకుమచ్చ', 'टिक्का रोग'],
+    },
+    symptoms: {
+      en: [
+        'Early leaf spot: Sub-circular reddish-brown spots with prominent bright yellow chlorotic halos on upper leaf surface.',
+        'Late leaf spot: Smaller, circular carbon-black spots without yellow halo, predominantly on lower leaf surface.',
+        'Severe premature defoliation leaving only bare stems, drastically reducing pod yield and kernel oil quality.',
+      ],
+      te: [
+        'ముందస్తు ఆకుమచ్చ: ఆకుల పైభాగంలో ఎర్రటి గోధుమ రంగు మచ్చలు మరియు వాటి చుట్టూ స్పష్టమైన పసుపు రంగు వలయం.',
+        'ఆలస్యపు ఆకుమచ్చ: ఆకుల అడుగుభాగంలో నల్లటి బొగ్గు రంగు మచ్చలు.',
+        'తీవ్రత ఎక్కువైతే ఆకులన్నీ రాలిపోయి కేవలం కాండాలు మాత్రమే మిగిలి కాయల దిగుబడి గణనీయంగా తగ్గుతుంది.',
+      ],
+      hi: [
+        'पत्तियों पर गोल गहरे भूरे से काले धब्बे, जिनके चारों ओर पीला छल्ला होता है।',
+        'संक्रमण बढ़ने पर पत्तियां झड़ जाती हैं जिससे फलियां नहीं बनतीं।',
+      ],
+    },
+    affected_plant_parts: ['leaf', 'stem'],
+    favorable_conditions: {
+      temperature_range: '25-30°C',
+      humidity_range: '>85% relative humidity for 3-4 consecutive days',
+      weather_triggers: ['Cloudy humid weather with prolonged leaf wetness'],
+    },
+    severity: 'high',
+    prevention_methods: [
+      'Seed treatment with Trichoderma viride @ 10g/kg seed or Thiram/Captan @ 3g/kg seed.',
+      'Crop rotation with non-leguminous crops like sorghum, pearl millet, or maize.',
+    ],
+    cultural_control: [
+      'Collect and burn infected plant stubbles after harvest.',
+      'Maintain balanced fertilizer application with adequate potash and zinc.',
+    ],
+    mechanical_control: ['Rogue out severely spotted baseline plants during early vegetative phase.'],
+    biological_control: ['Foliar spray with Pseudomonas fluorescens @ 10g/L or 2.5 kg/ha in 500L water.'],
+    ipm_recommendations: [
+      'Monitor starting 30 days after sowing. Spray immediately if spots exceed 1-2 per leaf.',
+    ],
+    chemical_management: {
+      is_applicable: true,
+      active_ingredient: 'Tebuconazole 25.9% EC @ 1.0 ml/L OR Mancozeb 75% WP @ 2.0 g/L',
+      official_recommendation: 'Spray at 40-45 DAS at first appearance of spots. Repeat after 15 days if cloudy humid conditions persist.',
+      safety_disclaimer: 'Pre-harvest waiting period: 21 days. Follow CIB&RC approved dosage strictly.',
+      regional_approval: 'PJTSAU / ANGRAU Recommended Practice',
+      source: 'ICAR - Directorate of Groundnut Research (DGR), Junagadh',
+    },
+    provenance: PROVENANCE_ANGRAU,
+  },
 ];
+

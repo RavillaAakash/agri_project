@@ -6,17 +6,31 @@ export interface StorageUploadResult {
   error?: string;
 }
 
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const ALLOWED_MIME_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/jfif',
+  'image/heic',
+  'image/heif',
+];
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 
 /**
  * Validates file constraints (MIME, size) before upload (§36, §55).
  */
 export function validateImageFile(file: File): { isValid: boolean; error?: string } {
-  if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+  const extension = (file.name || '').split('.').pop()?.toLowerCase();
+  const isExtensionValid = ['jpg', 'jpeg', 'png', 'webp', 'jfif', 'heic', 'heif'].includes(
+    extension || ''
+  );
+  const isMimeValid = ALLOWED_MIME_TYPES.includes(file.type);
+
+  if (!isMimeValid && !isExtensionValid) {
     return {
       isValid: false,
-      error: `Unsupported format: ${file.type}. Please upload JPG, PNG, or WebP images.`,
+      error: `Unsupported image format: ${file.type || extension}. Please upload JPG, PNG, or WebP foliage photos.`,
     };
   }
 

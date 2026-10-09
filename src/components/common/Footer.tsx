@@ -54,7 +54,7 @@ export const Footer: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <div className="font-semibold text-foreground">AgriAI Doctor System</div>
+            <div className="font-semibold text-foreground">NS Agri AI Doctor System</div>
             <p className="text-muted-foreground">
               v1.0.0-production-preview • Built for sustainable, evidence-based agricultural decision support.
             </p>
@@ -62,7 +62,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="border-t border-border pt-4 text-center text-[11px] text-muted-foreground">
-          © {new Date().getFullYear()} AgriAI Doctor. All agricultural guidance strictly adheres to national agricultural protection frameworks.
+          © {new Date().getFullYear()} NS Agri AI Doctor. All agricultural guidance strictly adheres to national agricultural protection frameworks.
         </div>
       </div>
     </footer>

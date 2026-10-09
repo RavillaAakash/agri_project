@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/features/profile/AuthContext';
-import { Sprout, Lock, Mail, User, Phone, MapPin, ShieldCheck, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { MetalButton } from '@/components/ui/MetalButton';
+import { Sprout, Lock, Mail, User, Phone, ShieldCheck, ArrowRight, CheckCircle2 } from 'lucide-react';
 import type { Language } from '@/types/agricultural';
 
 export const AuthPage: React.FC = () => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const { signIn, signUp, loginAsDemo } = useAuth();
 
@@ -69,7 +66,7 @@ export const AuthPage: React.FC = () => {
             <Sprout className="w-6 h-6 text-emerald-100" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            {mode === 'signin' ? 'Sign In to AgriAI Doctor' : 'Farmer Registration'}
+            {mode === 'signin' ? 'Sign In to NS Agri AI Doctor' : 'Farmer Registration'}
           </h1>
           <p className="text-xs text-muted-foreground">
             {mode === 'signin'
