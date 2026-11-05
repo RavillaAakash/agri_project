@@ -13,9 +13,6 @@ import {
   MicOff,
   Volume2,
   MapPin,
-  CloudSun,
-  Droplets,
-  Wind,
   Sparkles,
   ExternalLink,
 } from 'lucide-react';
@@ -26,7 +23,7 @@ import { runMultimodalInference, type LesionSegmentationEstimate } from '@/servi
 import { checkRateLimit } from '@/services/ai/rateLimiter';
 import { LiveCameraCapture } from '@/components/camera/LiveCameraCapture';
 import { LiveFarmMap, type FarmLocation } from '@/components/maps/LiveFarmMap';
-import { fetchLiveMicroclimate } from '@/services/weather/microclimateEngine';
+import { LiveLocationWeatherCard, type LiveLocationCoords } from '@/components/weather/LiveLocationWeatherCard';
 import type { PlantImageUpload, DiagnosisPrediction, DistrictWeatherReport, Language } from '@/types/agricultural';
 
 // ----------------------------------------------------------------------------
@@ -76,7 +73,6 @@ export const DiagnosePage: React.FC = () => {
     agroZone: 'Central Telangana Agro-Climatic Zone (CTZ)',
   });
   const [liveWeather, setLiveWeather] = useState<DistrictWeatherReport | null>(null);
-  const [isLoadingWeather, setIsLoadingWeather] = useState(false);
   const [showMapPanel, setShowMapPanel] = useState(false);
 
   // Farmer Voice Microphone State
@@ -98,31 +94,6 @@ export const DiagnosePage: React.FC = () => {
       setVoiceSupported(true);
     }
   }, []);
-
-  // Fetch Live Weather when farm location updates
-  const loadWeatherForLocation = useCallback(async (loc: FarmLocation) => {
-    try {
-      setIsLoadingWeather(true);
-      const report = await fetchLiveMicroclimate(
-        loc.latitude,
-        loc.longitude,
-        loc.district || 'Warangal',
-        loc.state || 'Telangana'
-      );
-      setLiveWeather(report);
-      if (loc.placeName) {
-        setRegion(loc.placeName);
-      }
-    } catch (err) {
-      console.warn('Live weather update failed:', err);
-    } finally {
-      setIsLoadingWeather(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadWeatherForLocation(farmLocation);
-  }, [farmLocation, loadWeatherForLocation]);
 
   // Voice Recognition Handler
   const toggleVoiceRecording = () => {
@@ -369,7 +340,7 @@ export const DiagnosePage: React.FC = () => {
       )}
 
       {/* Hero Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 border border-emerald-500/30 text-white shadow-xl relative overflow-hidden">
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 border border-emerald-500/30 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="absolute right-0 top-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="space-y-2 z-10 max-w-2xl">
@@ -385,38 +356,36 @@ export const DiagnosePage: React.FC = () => {
           </p>
         </div>
 
-        {/* Live Farm Location & Weather Quick Status Badge */}
-        <div className="z-10 bg-slate-950/70 border border-emerald-500/30 p-3.5 rounded-2xl flex flex-col gap-2 shrink-0 backdrop-blur-md sm:min-w-[240px]">
-          <div className="flex items-center justify-between gap-3 text-xs border-b border-emerald-500/20 pb-2">
-            <span className="font-semibold text-emerald-300 flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-              {farmLocation.district || 'Telangana'}
-            </span>
-            <button
-              type="button"
-              onClick={() => setShowMapPanel(!showMapPanel)}
-              className="text-[11px] text-emerald-400 hover:text-emerald-300 font-bold underline cursor-pointer"
-            >
-              {showMapPanel ? 'Hide Map' : 'Open Map'}
-            </button>
-          </div>
-
-          <div className="flex items-center justify-between text-xs text-slate-200">
-            <span className="flex items-center gap-1">
-              <CloudSun className="w-3.5 h-3.5 text-amber-400" />
-              {liveWeather ? `${liveWeather.temperature_c}°C` : '30°C'}
-            </span>
-            <span className="flex items-center gap-1">
-              <Droplets className="w-3.5 h-3.5 text-blue-400" />
-              {liveWeather ? `${liveWeather.humidity_percent}% RH` : '80% RH'}
-            </span>
-            <span className="flex items-center gap-1">
-              <Wind className="w-3.5 h-3.5 text-cyan-400" />
-              {liveWeather ? `${liveWeather.wind_kmh} km/h` : '10 km/h'}
-            </span>
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={() => setCameraModalOpen(true)}
+          className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs shadow-lg shadow-emerald-900/30 transition-all flex items-center gap-2 cursor-pointer shrink-0 z-10 active:scale-95"
+        >
+          <Camera className="w-4 h-4 text-slate-950" />
+          <span>📸 Open Live Camera</span>
+        </button>
       </div>
+
+      {/* Live GPS Field Location & Real-Time Weather Predictor */}
+      <LiveLocationWeatherCard
+        compact={true}
+        showMapToggle={true}
+        onToggleMap={() => setShowMapPanel(!showMapPanel)}
+        onWeatherLoaded={(report: DistrictWeatherReport, loc: LiveLocationCoords) => {
+          setLiveWeather(report);
+          setFarmLocation({
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+            accuracyMeters: loc.accuracyMeters,
+            placeName: loc.placeName,
+            district: loc.district,
+            state: loc.state,
+          });
+          if (loc.placeName) {
+            setRegion(loc.placeName);
+          }
+        }}
+      />
 
       {/* Interactive Live Map & GPS Tracking Panel */}
       {showMapPanel && (
@@ -444,7 +413,9 @@ export const DiagnosePage: React.FC = () => {
             initialLocation={farmLocation}
             onLocationSelect={(loc) => {
               setFarmLocation(loc);
-              loadWeatherForLocation(loc);
+              if (loc.placeName) {
+                setRegion(loc.placeName);
+              }
             }}
           />
         </div>
