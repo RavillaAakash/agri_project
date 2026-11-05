@@ -38,18 +38,20 @@ export const Header: React.FC = () => {
     <header className="sticky top-0 z-50 w-full border-b border-emerald-900/10 dark:border-emerald-800/20 bg-background/85 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand */}
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-800 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-900/20 group-hover:scale-105 transition-transform">
+        <Link to="/" className="flex items-center gap-3 shrink-0 group select-none py-1">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-800 flex items-center justify-center text-white shadow-md shadow-emerald-900/25 ring-2 ring-emerald-500/20 group-hover:scale-105 group-hover:ring-emerald-500/40 transition-all shrink-0">
             <Sprout className="w-5 h-5 text-emerald-100" />
           </div>
-          <div>
-            <div className="text-lg font-bold tracking-tight text-foreground flex items-center gap-1.5">
-              <span>NS Agri AI</span>
-              <span className="text-xs px-1.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 font-semibold border border-emerald-300/40">
+          <div className="flex flex-col justify-center min-w-0">
+            <div className="flex items-center gap-2 whitespace-nowrap leading-none">
+              <span className="text-lg sm:text-xl font-black tracking-tight text-foreground font-sans">
+                NS Agri <span className="bg-gradient-to-r from-emerald-600 to-teal-500 dark:from-emerald-400 dark:to-teal-300 bg-clip-text text-transparent">AI</span>
+              </span>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shadow-xs">
                 Doctor
               </span>
             </div>
-            <p className="text-[10px] text-muted-foreground hidden sm:block">
+            <p className="text-[10px] sm:text-[11px] font-medium text-muted-foreground whitespace-nowrap tracking-tight leading-none hidden md:block pt-1">
               {t('app.tagline')}
             </p>
           </div>
