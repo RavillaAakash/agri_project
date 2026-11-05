@@ -118,6 +118,25 @@ export interface DiagnosisPrediction {
     source: string;
     regional_applicability: string;
   };
+  localized_symptoms?: {
+    en: string[];
+    te: string[];
+    hi: string[];
+  };
+  localized_cultural?: {
+    en: string[];
+    te: string[];
+    hi: string[];
+  };
+  localized_ipm?: {
+    en: string[];
+    te: string[];
+    hi: string[];
+  };
+  weather_risk_factor?: string;
+  field_location_name?: string;
+  ai_model_name?: string;
+  accuracy_guarantee?: string;
   sources: ProvenanceMetadata[];
   requires_expert_review: boolean;
 }

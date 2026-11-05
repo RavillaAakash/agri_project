@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
   CloudSun,
@@ -25,7 +24,6 @@ import {
 } from '@/services/weather/microclimateEngine';
 
 export const WeatherPage: React.FC = () => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const [selectedDistrict, setSelectedDistrict] = useState('Warangal');
 

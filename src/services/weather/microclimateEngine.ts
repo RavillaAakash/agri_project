@@ -281,3 +281,141 @@ export function getDistrictWeatherReport(districtName: string): DistrictWeatherR
     five_day_forecast: fiveDay,
   };
 }
+
+// ----------------------------------------------------------------------------
+// LIVE OPEN-METEO WEATHER FETCH (Real-Time GPS Coordinates)
+// ----------------------------------------------------------------------------
+export async function fetchLiveMicroclimate(
+  latitude: number,
+  longitude: number,
+  districtHint = 'Warangal',
+  stateHint: string = 'Telangana'
+): Promise<DistrictWeatherReport> {
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto&forecast_days=6`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Weather fetch failed: ${res.status}`);
+
+    const data = await res.json();
+    const current = data.current || {};
+    const daily = data.daily || {};
+
+    const temp = Math.round((current.temperature_2m ?? 30.5) * 10) / 10;
+    const humidity = Math.round(current.relative_humidity_2m ?? 80);
+    const rain = Math.round((current.precipitation ?? 0) * 10) / 10;
+    const wind = Math.round((current.wind_speed_10m ?? 10) * 10) / 10;
+    const weatherCode = current.weather_code ?? 0;
+
+    // Decode weather code
+    const weatherDescription = (code: number): string => {
+      if (code === 0) return 'Clear Skies (సూర్యరశ్మి)';
+      if (code <= 3) return 'Partly Cloudy (తేలికపాటి మబ్బులు)';
+      if (code <= 48) return 'Foggy / Dewy (పొగమంచు)';
+      if (code <= 67) return 'Rain Showers (వర్షం)';
+      if (code <= 77) return 'Snow / Cold hail';
+      if (code <= 82) return 'Heavy Showers (భారీ వర్షం)';
+      return 'Thunderstorm with Gusty Winds (ఉరుములతో కూడిన వర్షం)';
+    };
+
+    // Dew point approximation (Magnus-Tetens)
+    const a = 17.27;
+    const b = 237.7;
+    const alpha = (a * temp) / (b + temp) + Math.log(humidity / 100);
+    const dewPoint = Math.round(((b * alpha) / (a - alpha)) * 10) / 10;
+
+    // Disease risk alerts tailored to real-time microclimate
+    const diseaseAlerts: DistrictWeatherReport['disease_risk_alerts'] = [];
+
+    // Fungal blast / blight alert: high humidity + moderate temp
+    if (humidity >= 80 && temp <= 32) {
+      diseaseAlerts.push({
+        crop: 'Paddy & Vegetables',
+        disease: 'Fungal Blast & Sheath Blight Risk (అగ్గితెగులు & ఆకుమచ్చ)',
+        risk_level: humidity > 88 ? 'high' : 'moderate',
+        risk_factor: `Live relative humidity (${humidity}%) and dew point (${dewPoint}°C) exceed the threshold for fungal spore germination and penetration into vegetative stomata.`,
+        preventive_advice:
+          'Withhold excessive urea. Apply Trichoderma viride @ 5g/L or Pseudomonas fluorescens @ 10g/L preventively. Ensure field drainage.',
+      });
+    }
+
+    // Sucking pest alert: warm & dry spells
+    if (temp >= 31 && humidity < 75) {
+      diseaseAlerts.push({
+        crop: 'Chilli & Cotton',
+        disease: 'Thrips, Mites & Whitefly Sucking Complex (తామర పురుగులు & తెల్లదోమ)',
+        risk_level: temp > 33 ? 'high' : 'moderate',
+        risk_factor: `Hot ambient temperatures (${temp}°C) shorten thrips nymphal cycles from 14 days down to 8 days, triggering rapid leaf curl.`,
+        preventive_advice:
+          'Install 20 yellow and 20 blue sticky traps per acre. Spray 5% Neem Seed Kernel Extract (NSKE) or Azadirachtin 10,000 ppm @ 1 ml/L.',
+      });
+    }
+
+    // Anthracnose / fruit rot: rainfall event
+    if (rain > 2 || weatherCode >= 51) {
+      diseaseAlerts.push({
+        crop: 'Chilli & Tomato',
+        disease: 'Anthracnose & Fruit Rot (కొమ్మ ఎండు / కాయ కుళ్ళు)',
+        risk_level: rain > 10 ? 'high' : 'moderate',
+        risk_factor: `Active precipitation (${rain} mm) causes soil-splash dispersal of fungal conidia onto low-hanging fruit and branches.`,
+        preventive_advice:
+          'Ensure free drainage channels. Clip off any necrotic twigs. Apply Copper Oxychloride 50% WP @ 2.5 g/L once foliage dries.',
+      });
+    }
+
+    // Fall armyworm / borer: windy evening flights
+    if (wind >= 12) {
+      diseaseAlerts.push({
+        crop: 'Maize & Cotton',
+        disease: 'Borer & Fall Armyworm Moth Dispersal (కత్తెర పురుగు)',
+        risk_level: 'moderate',
+        risk_factor: `Live wind velocity (${wind} km/h) aids long-range nocturnal adult moth migration across adjacent agricultural fields.`,
+        preventive_advice:
+          'Scout for pinhole egg masses in maize whorls. Install 5 solar/light pheromone traps per acre.',
+      });
+    }
+
+    const sprayWindow = calculateSprayWindowAdvisory(temp, wind, rain);
+
+    // 5-day forecast mapping
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const timeArr = daily.time || [];
+    const fiveDay = timeArr.slice(1, 6).map((dateStr: string, idx: number) => {
+      const d = new Date(dateStr);
+      const dayName = days[d.getDay()] || 'Day';
+      const maxT = daily.temperature_2m_max?.[idx + 1] ?? temp + 2;
+      const minT = daily.temperature_2m_min?.[idx + 1] ?? temp - 6;
+      const pSum = daily.precipitation_sum?.[idx + 1] ?? 0;
+      const code = daily.weather_code?.[idx + 1] ?? 0;
+
+      return {
+        date: dateStr,
+        day_name: dayName,
+        temp_max_c: Math.round(maxT * 10) / 10,
+        temp_min_c: Math.round(minT * 10) / 10,
+        humidity_percent: Math.min(95, Math.max(50, Math.round(humidity - idx * 2))),
+        condition: weatherDescription(code),
+        disease_threat: pSum > 5 ? 'High Fungal Spore Threat' : 'Sucking Pest Vigil',
+      };
+    });
+
+    return {
+      district: districtHint,
+      state: (stateHint.toLowerCase().includes('andhra') ? 'Andhra Pradesh' : 'Telangana') as 'Telangana' | 'Andhra Pradesh',
+      agro_climatic_zone: `Live GPS Farm Weather (${latitude.toFixed(3)}°N, ${longitude.toFixed(3)}°E)`,
+      temperature_c: temp,
+      humidity_percent: humidity,
+      rainfall_mm: rain,
+      wind_kmh: wind,
+      dew_point_c: dewPoint,
+      uv_index: temp > 31 ? 8 : 6,
+      cloud_cover_percent: weatherCode > 2 ? 80 : 35,
+      forecast_summary: `${weatherDescription(weatherCode)}. Temp: ${temp}°C, Humidity: ${humidity}%, Wind: ${wind} km/h.`,
+      disease_risk_alerts: diseaseAlerts,
+      spray_window: sprayWindow,
+      five_day_forecast: fiveDay,
+    };
+  } catch (err) {
+    console.warn('Falling back to district agro profile:', err);
+    return getDistrictWeatherReport(districtHint);
+  }
+}

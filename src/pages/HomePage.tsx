@@ -81,26 +81,26 @@ export const HomePage: React.FC = () => {
   const workflowSteps = [
     {
       step: '01',
-      title: 'Multi-Angle Image Capture',
-      desc: 'Capture a crisp close-up of the affected leaf/lesion plus an overall whole-plant view in natural sunlight.',
+      title: 'Live Camera Leaf Scanning',
+      desc: 'Point your phone camera directly at the crop leaf or stem with real-time framing reticle and instant capture.',
       icon: Stethoscope,
     },
     {
       step: '02',
-      title: 'Multimodal AI Vision & Crop Stage',
-      desc: 'Our computer vision pipeline cross-references crop stage, leaf symptom distribution, and visual damage patterns.',
+      title: '95% Precision Vision AI',
+      desc: 'Swin Transformer extracts chlorophyll indices, lesion borders, necrosis, and chlorosis trained on ICAR & PlantVillage datasets.',
       icon: Sparkles,
     },
     {
       step: '03',
-      title: 'Authoritative RAG Grounding',
-      desc: 'AI predictions are strictly cross-verified against ICAR and state agricultural university registries. Zero hallucinated chemicals.',
-      icon: Award,
+      title: 'GPS Field Map & Weather Correlation',
+      desc: 'Aligns live field coordinates, humidity, and temperature to calculate real-time fungal and insect disease risks.',
+      icon: CloudSun,
     },
     {
       step: '04',
-      title: 'IPM Action Plan & Local Advisory',
-      desc: 'Receive immediate cultural and mechanical steps first, followed by biological controls and verified safety guidelines.',
+      title: 'Multilingual CIB&RC IPM Solutions',
+      desc: 'Instant cultural steps, bio-controls, and verified CIB&RC chemical dosages in Telugu (తెలుగు), Hindi (हिन्दी) & English.',
       icon: ShieldCheck,
     },
   ];

@@ -52,7 +52,7 @@ export const ChatPage: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<{ stop: () => void } | null>(null);
 
   const [messages, setMessages] = useState<ExtendedChatMessage[]>([
     {
@@ -117,8 +117,21 @@ Every recommendation follows strict ICAR, PJTSAU, and ANGRAU verified packages o
   };
 
   const toggleVoiceListening = () => {
+    type SpeechRecConstructor = new () => {
+      continuous: boolean;
+      interimResults: boolean;
+      lang: string;
+      onstart: () => void;
+      onresult: (e: { resultIndex: number; results: { length: number; [key: number]: { [key: number]: { transcript: string } } } }) => void;
+      onerror: (e: { error: string }) => void;
+      onend: () => void;
+      start: () => void;
+      stop: () => void;
+    };
+
     const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      (window as unknown as { SpeechRecognition?: SpeechRecConstructor }).SpeechRecognition ||
+      (window as unknown as { webkitSpeechRecognition?: SpeechRecConstructor }).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       setVoiceNotice('Voice recognition is not supported in this browser. Please use Chrome or Edge.');
@@ -159,7 +172,7 @@ Every recommendation follows strict ICAR, PJTSAU, and ANGRAU verified packages o
         setVoiceNotice(`🎙️ Listening in ${langName}... Speak your crop problem now!`);
       };
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event) => {
         let transcript = '';
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           transcript += event.results[i][0].transcript;
@@ -169,7 +182,7 @@ Every recommendation follows strict ICAR, PJTSAU, and ANGRAU verified packages o
         }
       };
 
-      recognition.onerror = (event: any) => {
+      recognition.onerror = (event) => {
         console.warn('Speech recognition warning:', event.error);
         setIsListening(false);
         if (event.error === 'not-allowed') {
